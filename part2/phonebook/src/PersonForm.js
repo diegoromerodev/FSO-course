@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import personsServices from "./services/persons";
 
 export default (props) => {
   const { persons, setPersons } = props;
@@ -15,24 +16,39 @@ export default (props) => {
   };
   const checkDuplicate = (value) => {
     const tester = new RegExp(value, "i");
-    const matches = persons.filter((person) => tester.test(person.name));
-    return matches.length >= 1;
+    return persons.find((person) => tester.test(person.name));
   };
 
   const addName = (e) => {
     e.preventDefault();
     if (!newName || !newNumber) return;
-    if (checkDuplicate(newName)) {
-      alert(`${newName} is already present in the phonebook`);
-      return;
+    const dupe = checkDuplicate(newName);
+    if (dupe) {
+      if (
+        !confirm(
+          `${newName} is already present in the phonebook, do you want to update the number?`
+        )
+      ) {
+        return false;
+      }
+      dupe.number = newNumber;
+      setNewName("");
+      setNewNumber("");
+      personsServices.updateOne(dupe).then(() => {
+        setPersons(persons.map((p) => (p.id === dupe.id ? dupe : p)));
+      });
+      return true;
     }
-    setPersons(
-      persons.concat({
-        name: newName,
-        number: newNumber,
-        id: persons.length + 1,
-      })
-    );
+
+    const personObj = {
+      name: newName,
+      number: newNumber,
+    };
+
+    personsServices
+      .saveOne(personObj)
+      .then((personData) => setPersons(persons.concat(personData)));
+
     setNewName("");
     setNewNumber("");
   };

@@ -1,8 +1,8 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Filter from "./Filter";
 import PersonForm from "./PersonForm";
 import Persons from "./Persons";
+import personsServices from "./services/persons";
 
 function App() {
   const [persons, setPersons] = useState([]);
@@ -10,9 +10,7 @@ function App() {
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/persons")
-      .then((res) => setPersons(res.data));
+    personsServices.getAll().then(setPersons);
   }, []);
 
   return (
@@ -21,7 +19,7 @@ function App() {
       <Filter filter={filter} setFilter={setFilter} />
       <PersonForm persons={persons} setPersons={setPersons} />
       <h2>Numbers</h2>
-      <Persons filter={filter} persons={persons} />
+      <Persons filter={filter} persons={persons} setPersons={setPersons} />
     </div>
   );
 }
