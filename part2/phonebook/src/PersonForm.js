@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import personsServices from "./services/persons";
 
 export default (props) => {
-  const { persons, setPersons } = props;
+  const { persons, setPersons, setNotification } = props;
 
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
@@ -17,6 +17,15 @@ export default (props) => {
   const checkDuplicate = (value) => {
     const tester = new RegExp(value, "i");
     return persons.find((person) => tester.test(person.name));
+  };
+
+  const handleError = (name) => {
+    setNotification({
+      message: `${name}'s info had already been deleted.`,
+      type: "warning",
+    });
+    setPersons(persons.filter((p) => p.name !== name));
+    setTimeout(() => setNotification({}), 3000);
   };
 
   const addName = (e) => {
@@ -34,9 +43,19 @@ export default (props) => {
       dupe.number = newNumber;
       setNewName("");
       setNewNumber("");
-      personsServices.updateOne(dupe).then(() => {
-        setPersons(persons.map((p) => (p.id === dupe.id ? dupe : p)));
-      });
+      personsServices
+        .updateOne(dupe)
+        .then(() => {
+          setPersons(persons.map((p) => (p.id === dupe.id ? dupe : p)));
+          setNotification({
+            message: `Successfully updated ${dupe.name}'s number.`,
+            type: "success",
+          });
+          setTimeout(() => setNotification({}), 3000);
+        })
+        .catch(() => {
+          handleError(dupe.name);
+        });
       return true;
     }
 
@@ -45,9 +64,16 @@ export default (props) => {
       number: newNumber,
     };
 
-    personsServices
-      .saveOne(personObj)
-      .then((personData) => setPersons(persons.concat(personData)));
+    personsServices.saveOne(personObj).then((personData) => {
+      setPersons(persons.concat(personData));
+      setNotification({
+        message: `Successfully added ${personObj.name}'s number.`,
+        type: "success",
+      }).catch(() => {
+        handleError(personObj.name);
+      });
+      setTimeout(() => setNotification({}), 3000);
+    });
 
     setNewName("");
     setNewNumber("");
