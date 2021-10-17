@@ -64,16 +64,19 @@ export default (props) => {
       number: newNumber,
     };
 
-    personsServices.saveOne(personObj).then((personData) => {
-      setPersons(persons.concat(personData));
-      setNotification({
-        message: `Successfully added ${personObj.name}'s number.`,
-        type: "success",
-      }).catch(() => {
+    personsServices
+      .saveOne(personObj)
+      .then((personData) => {
+        setPersons(persons.concat(personData));
+        setNotification({
+          message: `Successfully added ${personObj.name}'s number.`,
+          type: "success",
+        });
+        setTimeout(() => setNotification({}), 3000);
+      })
+      .catch(() => {
         handleError(personObj.name);
       });
-      setTimeout(() => setNotification({}), 3000);
-    });
 
     setNewName("");
     setNewNumber("");

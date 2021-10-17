@@ -2,7 +2,9 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const persons = require("./data");
+const cors = require("cors");
 
+app.use(cors());
 app.use(express.json());
 morgan.token("body", (req) =>
   req.body && Object.keys(req.body).length ? JSON.stringify(req.body) : ""
@@ -73,7 +75,7 @@ app.delete("/api/persons/:id", (req, res) => {
   res.status(204).end();
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log("LISTENING ON PORT " + PORT);
