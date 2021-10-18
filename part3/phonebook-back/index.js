@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
-const persons = require("./data");
 const cors = require("cors");
+const Person = require("./models/Person");
 
 app.use(cors());
 app.use(express.json());
@@ -26,57 +27,75 @@ app.use(
 );
 
 app.get("/info", (req, res) => {
-  const numberOfPeople =
-    persons.length +
-    (persons.length > 1 || !persons.length ? " people" : "person");
-  const date = new Date();
-  const html = `<p>Phonebook has info for ${numberOfPeople}.</p><p>${date}</p>`;
-  res.send(html);
+  Person.find().then((persons) => {
+    const numberOfPeople =
+      persons.length +
+      (persons.length > 1 || !persons.length ? " people" : " person");
+    const date = new Date();
+    const html = `<p>Phonebook has info for ${numberOfPeople}.</p><p>${date}</p>`;
+    res.send(html);
+  });
 });
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  Person.find().then((results) => res.json(results));
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const { body } = req;
 
   if (!body.name || !body.number) {
-    return res.status(400).json({
+    return next({
       error: "request must contain a name and a number",
     });
-  } else if (persons.find((p) => p.name === body.name)) {
-    return res.status(400).json({
-      error: "name must be unique",
-    });
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: Math.floor(Math.random() * 9999999),
-  };
+  });
 
-  persons.push(person);
-
-  res.json(person);
+  person.save().then((saved) => {
+    res.json(saved);
+  });
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const person = persons.find((p) => p.id === Number(req.params.id));
-  if (person) {
-    return res.send(person);
-  }
-  res.status(404).end();
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id).then((person) => {
+    return res.json(person);
+    if (!person) {
+      next();
+    }
+  });
+});
+
+app.put("/api/persons/:id", (req, res, next) => {
+  const { body } = req;
+  if (!body.name || !body.number) return next({ error: "missing update info" });
+  const { name, number } = body;
+  const updates = { name, number };
+  Person.findByIdAndUpdate(req.params.id, updates, { new: true })
+    .then((updated) => {
+      res.json(updated);
+    })
+    .catch((err) => next(err));
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-  const idx = persons.findIndex((p) => p.id === Number(req.params.id));
-  persons.splice(idx, 1);
-  res.status(204).end();
+  Person.findByIdAndRemove(req.params.id).then(() => {
+    res.status(204).end();
+  });
 });
 
-const PORT = process.env.PORT || 3001;
+app.use((req, res, next) => {
+  return res.status(404).send("SOMETHING HORRIBLE HAPPENED");
+});
+
+app.use((err, req, res) => {
+  res.status(400).send("BAD REQUEST. PLEASE FIX.");
+});
+
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log("LISTENING ON PORT " + PORT);
