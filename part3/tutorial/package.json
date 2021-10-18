@@ -9,14 +9,16 @@
     "devstart": "nodemon index.js",
     "build:ui": "rm -rf build && cd ../../part2/tutorial/ && npm run build --prod && cp -r build ../../part3/tutorial/",
     "deploy": "cd ../../ git subtree push --prefix part3/tutorial heroku main",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",    
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
     "logs:prod": "heroku logs --tail"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.17.1"
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "mongoose": "^6.0.11"
   },
   "devDependencies": {
     "nodemon": "^2.0.13"
