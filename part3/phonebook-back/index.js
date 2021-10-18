@@ -55,9 +55,12 @@ app.post("/api/persons", (req, res, next) => {
     number: body.number,
   });
 
-  person.save().then((saved) => {
-    res.json(saved);
-  });
+  person
+    .save()
+    .then((saved) => {
+      res.json(saved);
+    })
+    .catch((err) => next(err));
 });
 
 app.get("/api/persons/:id", (req, res, next) => {
@@ -74,7 +77,10 @@ app.put("/api/persons/:id", (req, res, next) => {
   if (!body.name || !body.number) return next({ error: "missing update info" });
   const { name, number } = body;
   const updates = { name, number };
-  Person.findByIdAndUpdate(req.params.id, updates, { new: true })
+  Person.findByIdAndUpdate(req.params.id, updates, {
+    new: true,
+    runValidators: true,
+  })
     .then((updated) => {
       res.json(updated);
     })
@@ -88,11 +94,11 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 app.use((req, res, next) => {
-  return res.status(404).send("SOMETHING HORRIBLE HAPPENED");
+  return res.status(404).send({ error: "route not found" });
 });
 
-app.use((err, req, res) => {
-  res.status(400).send("BAD REQUEST. PLEASE FIX.");
+app.use((err, req, res, next) => {
+  res.status(400).send({ error: err.message });
 });
 
 const PORT = process.env.PORT;

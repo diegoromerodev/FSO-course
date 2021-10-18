@@ -19,13 +19,12 @@ export default (props) => {
     return persons.find((person) => tester.test(person.name));
   };
 
-  const handleError = (name) => {
+  const handleError = (err) => {
     setNotification({
-      message: `${name}'s info had already been deleted.`,
+      message: err.response.data.error,
       type: "warning",
     });
-    setPersons(persons.filter((p) => p.name !== name));
-    setTimeout(() => setNotification({}), 3000);
+    setTimeout(() => setNotification({}), 6000);
   };
 
   const addName = (e) => {
@@ -53,8 +52,8 @@ export default (props) => {
           });
           setTimeout(() => setNotification({}), 3000);
         })
-        .catch(() => {
-          handleError(dupe.name);
+        .catch((err) => {
+          handleError(err);
         });
       return true;
     }
@@ -74,8 +73,8 @@ export default (props) => {
         });
         setTimeout(() => setNotification({}), 3000);
       })
-      .catch(() => {
-        handleError(personObj.name);
+      .catch((err) => {
+        handleError(err);
       });
 
     setNewName("");
