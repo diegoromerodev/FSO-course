@@ -8,7 +8,7 @@
     "start": "node index.js",
     "devstart": "nodemon index.js",
     "build:ui": "rm -rf build && cd ../../part2/tutorial/ && npm run build --prod && cp -r build ../../part3/tutorial/",
-    "deploy": "cd ../../ git subtree push --prefix part3/tutorial heroku main",
+    "deploy": "cd ../../ && git subtree push --prefix part3/tutorial heroku main",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
     "logs:prod": "heroku logs --tail"
   },
