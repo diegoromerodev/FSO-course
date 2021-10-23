@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const blogSchema = new mongoose.Schema({
   title: String,
-  author: String,
+  author: { type: mongoose.SchemaTypes.ObjectId, ref: "User" },
   url: String,
   likes: { type: Number, default: 0 },
 });

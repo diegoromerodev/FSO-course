@@ -3,15 +3,36 @@ const Blog = require("../models/blog");
 const helper = require("./helper");
 const app = require("../app");
 const mongoose = require("mongoose");
+const User = require("../models/user");
+const bcrypt = require("bcryptjs");
 
 const api = supertest(app);
 
+let token = null;
+
 beforeEach(async () => {
-  await Blog.deleteMany({});
+  let defaultAuthor = await User.findOne({ username: "diego" });
+  defaultAuthor.delete();
+  const pass = bcrypt.hashSync("1234");
+  defaultAuthor = await new User({
+    username: "diego",
+    password: pass,
+    name: "Diego Romero",
+  }).save();
+
+  await Blog.find({}).deleteMany();
   for (const blog of helper.initialBlogs) {
+    blog.author = defaultAuthor._id;
     const newBlog = new Blog(blog);
     await newBlog.save();
   }
+
+  let res = await api
+    .post("/api/login")
+    .send({ username: "diego", password: "1234" })
+    .expect(200)
+    .expect("Content-Type", /json/);
+  token = res.body.token;
 });
 
 describe("basic crud for blogs", () => {
@@ -33,13 +54,13 @@ describe("basic crud for blogs", () => {
   test("can post blog", async () => {
     const newBlog = {
       title: "Diego Romero",
-      author: "El Diego",
       url: "whatever.com",
       likes: 5,
     };
 
     const res = await api
       .post("/api/blogs")
+      .set("Authorization", "Bearer " + token)
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /json/);
@@ -50,15 +71,28 @@ describe("basic crud for blogs", () => {
     expect(blogsNow).toHaveLength(helper.initialBlogs.length + 1);
   });
 
+  test("fails when token not provided", async () => {
+    const newBlog = {
+      title: "Diego Romero",
+      url: "whatever.com",
+      likes: 5,
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(401);
+
+    const blogsNow = await helper.currentBlogs();
+    expect(blogsNow).toHaveLength(helper.initialBlogs.length);
+  });
+
   test("likes should default to 0", async () => {
     const newBlog = {
       title: "Diego Romero",
-      author: "El Diego",
       url: "whatever.com",
     };
 
     const res = await api
       .post("/api/blogs")
+      .set("Authorization", "Bearer " + token)
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /json/);
@@ -67,16 +101,19 @@ describe("basic crud for blogs", () => {
   });
 
   test("receives 400 status when missing title or url", async () => {
-    const newBlog = {
-      author: "El Diego",
-    };
-
-    await api.post("/api/blogs").send(newBlog).expect(400);
+    await api
+      .post("/api/blogs")
+      .set("Authorization", "Bearer " + token)
+      .send({})
+      .expect(400);
   });
 
   test("should delete with id", async () => {
     const blogId = helper.initialBlogs[0]._id;
-    await api.delete("/api/blogs/" + blogId).expect(204);
+    await api
+      .delete("/api/blogs/" + blogId)
+      .set("Authorization", "Bearer " + token)
+      .expect(204);
     const currBlogs = await helper.currentBlogs();
     expect(currBlogs.length).toBe(helper.initialBlogs.length - 1);
   });
@@ -86,11 +123,10 @@ describe("basic crud for blogs", () => {
     const moreLikes = { likes: 250 };
     const updatedBlog = await api
       .put("/api/blogs/" + blogId)
+      .set("Authorization", "Bearer " + token)
       .send(moreLikes)
       .expect(200)
       .expect("Content-Type", /json/);
-
-    console.log(updatedBlog.body);
 
     expect(updatedBlog.body.likes).toBe(moreLikes.likes);
   });
