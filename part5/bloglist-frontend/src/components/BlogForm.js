@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import blogs from "../services/blogs";
+import PropTypes from "prop-types";
 
-const BlogForm = ({ setBlogs, createNotification }) => {
+const BlogForm = ({ createNotification, saveBlog }) => {
   const [title, setTitle] = useState("");
   const [url, setURL] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     try {
-      const newBlog = await blogs.createBlog({ title, url });
-      setBlogs((prevState) => prevState.concat(newBlog));
+      const newBlog = { title, url };
+      saveBlog(newBlog);
       setURL("");
       createNotification({
         text: title + " blog was added successfully.",
@@ -29,15 +29,25 @@ const BlogForm = ({ setBlogs, createNotification }) => {
       <div>
         title:{" "}
         <input
+          id="title-field"
           value={title}
           onChange={({ target }) => setTitle(target.value)}
         />
         url:{" "}
-        <input value={url} onChange={({ target }) => setURL(target.value)} />
+        <input
+          id="url-field"
+          value={url}
+          onChange={({ target }) => setURL(target.value)}
+        />
       </div>
       <button>save blog</button>
     </form>
   );
+};
+
+BlogForm.propTypes = {
+  createNotification: PropTypes.func.isRequired,
+  saveBlog: PropTypes.func.isRequired,
 };
 
 export default BlogForm;
