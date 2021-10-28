@@ -49,12 +49,20 @@ const App = () => {
 
   const handleDelete = async (blog) => {
     if (window.confirm("remove " + blog.title)) {
-      setBlogs(blogs.filter((b) => b.id !== blog.id));
-      await blogService.deleteBlog(blog.id);
+      try {
+        await blogService.deleteBlog(blog.id);
+        setBlogs(blogs.filter((b) => b.id !== blog.id));
+      } catch (err) {
+        createNotification({
+          text: "you can't do that",
+          type: "warning",
+        });
+      }
     }
   };
 
   const addLike = async (blog) => {
+    setBlogs([...blogs]);
     await blogService.updateBlog(blog);
   };
 
@@ -75,16 +83,18 @@ const App = () => {
             />
           </Togglable>
           <h2>blogs</h2>
-          {blogs
-            .sort((a, b) => b.likes - a.likes)
-            .map((blog) => (
-              <Blog
-                key={blog.id}
-                blog={blog}
-                handleDelete={handleDelete}
-                sendLike={addLike}
-              />
-            ))}
+          <div id="blog-list">
+            {blogs
+              .sort((a, b) => b.likes - a.likes)
+              .map((blog) => (
+                <Blog
+                  key={blog.id}
+                  blog={blog}
+                  handleDelete={handleDelete}
+                  sendLike={addLike}
+                />
+              ))}
+          </div>
         </div>
       ) : (
         <LoginForm setUser={setUser} createNotification={createNotification} />

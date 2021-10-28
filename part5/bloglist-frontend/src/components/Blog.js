@@ -32,7 +32,10 @@ const Blog = ({ blog, handleDelete, sendLike }) => {
       >
         <p>{blog.url}</p>
         <p>
-          {likes} likes <button onClick={addLike}>like</button>
+          <span className="likes">{likes} likes </span>
+          <button className="like-button" onClick={addLike}>
+            like
+          </button>
         </p>
       </div>
       <button onClick={deleteClick}>remove</button>

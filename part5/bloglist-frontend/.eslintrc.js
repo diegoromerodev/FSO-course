@@ -4,6 +4,7 @@ module.exports = {
     browser: true,
     es2021: true,
     jest: true,
+    "cypress/globals": true,
   },
   extends: [
     "eslint:recommended",
@@ -17,7 +18,7 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: "module",
   },
-  plugins: ["react"],
+  plugins: ["react", "cypress"],
   rules: {
     "react/prop-types": [0, {}],
     "linebreak-style": ["error", "unix"],
