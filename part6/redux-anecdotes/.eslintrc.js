@@ -1,7 +1,8 @@
 module.exports = {
     "env": {
         "browser": true,
-        "es2021": true
+        "es2021": true,
+        node: true
     },
     "extends": [
         "eslint:recommended",
@@ -22,6 +23,7 @@ module.exports = {
             "error",
             4
         ],
+        "no-case-declarations": [0],
         "linebreak-style": [
             "error",
             "unix"
