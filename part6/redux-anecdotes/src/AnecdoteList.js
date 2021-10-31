@@ -12,7 +12,7 @@ const AnecdoteList = () => {
     const dispatch = useDispatch();
 
     const vote = ({id, content}) => {
-        dispatch(setNotification("you voted voted for '" + content + "'"));
+        dispatch(setNotification("you voted for '" + content + "'", 10));
         dispatch(addVote(id));
     };
 

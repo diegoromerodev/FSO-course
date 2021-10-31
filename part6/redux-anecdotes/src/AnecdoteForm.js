@@ -8,8 +8,12 @@ const AnecdoteForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(createAnecdote(e.target.anecdote.value));
-        dispatch(setNotification("successfully created new note"));
+        const newNote = {
+            content: e.target.anecdote.value,
+            votes: 0
+        };
+        dispatch(createAnecdote(newNote));
+        dispatch(setNotification("successfully created new note", 10));
         e.target.anecdote.value = "";
     };
 
