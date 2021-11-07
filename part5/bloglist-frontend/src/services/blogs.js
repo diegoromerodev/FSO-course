@@ -24,8 +24,22 @@ const updateBlog = async (blog) => {
   return res.data;
 };
 
+const addComment = async (blog) => {
+  const res = await axios.post(baseUrl + blog.id + "/comments", blog, {
+    headers: token,
+  });
+  return res.data;
+};
+
 const deleteBlog = async (id) => {
   return await axios.delete(baseUrl + id, { headers: token });
 };
 
-export default { getAll, setToken, createBlog, updateBlog, deleteBlog };
+export default {
+  getAll,
+  setToken,
+  createBlog,
+  updateBlog,
+  deleteBlog,
+  addComment,
+};

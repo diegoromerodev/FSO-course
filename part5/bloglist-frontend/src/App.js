@@ -1,105 +1,45 @@
-import React, { useState, useEffect, useRef } from "react";
-import Blog from "./components/Blog";
-import BlogForm from "./components/BlogForm";
-import LoginForm from "./components/LoginForm";
-import blogService from "./services/blogs";
+import React, { useEffect } from "react";
 import "./App.css";
-import Togglable from "./components/Togglable";
+import Users from "./components/Users";
+import { Routes, Route } from "react-router-dom";
+import Blogs from "./components/Blogs";
+import Blog from "./components/Blog";
+import { useDispatch } from "react-redux";
+import { setBlogs } from "./reducers/blogsReducer";
+import { useSelector } from "react-redux";
+import { existingLogin } from "./reducers/sessionReducer";
+import User from "./components/User";
+import NavBar from "./components/NavBar";
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState(null);
+  const message = useSelector((state) => state.notification);
+  const user = useSelector((state) => state.session);
 
-  const blogFormRef = useRef();
+  const dispatch = useDispatch();
+  useEffect(async () => {
+    dispatch(setBlogs());
+  }, []);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("blogUser"));
     if (user) {
-      setUser(user);
-      blogService.setToken(user.token);
+      dispatch(existingLogin(user));
     }
   }, []);
-
-  const createNotification = (message) => {
-    setMessage(message);
-    setTimeout(() => setMessage(null), 4000);
-  };
-
-  useEffect(async () => {
-    const res = await blogService.getAll();
-    setBlogs(res);
-  }, []);
-
-  const logOut = () => {
-    setUser(null);
-    localStorage.clear();
-    blogService.setToken(null);
-    createNotification({
-      text: "logged out",
-      type: "success",
-    });
-  };
-
-  const saveBlog = async (newBlog) => {
-    blogFormRef.current.toggleVisibility();
-    const blog = await blogService.createBlog(newBlog);
-    setBlogs((prevState) => prevState.concat(blog));
-  };
-
-  const handleDelete = async (blog) => {
-    if (window.confirm("remove " + blog.title)) {
-      try {
-        await blogService.deleteBlog(blog.id);
-        setBlogs(blogs.filter((b) => b.id !== blog.id));
-      } catch (err) {
-        createNotification({
-          text: "you can't do that",
-          type: "warning",
-        });
-      }
-    }
-  };
-
-  const addLike = async (blog) => {
-    setBlogs([...blogs]);
-    await blogService.updateBlog(blog);
-  };
 
   return (
-    <div>
+    <>
       {message && (
-        <div className={"notification " + message.type}>{message.text}</div>
+        <div className={"notification " + message.split(":")[0]}>{message}</div>
       )}
-      {user ? (
-        <div>
-          <p>
-            {user.name} logged in <button onClick={logOut}>logout</button>
-          </p>
-          <Togglable ref={blogFormRef} buttonText="create new blog">
-            <BlogForm
-              createNotification={createNotification}
-              saveBlog={saveBlog}
-            />
-          </Togglable>
-          <h2>blogs</h2>
-          <div id="blog-list">
-            {blogs
-              .sort((a, b) => b.likes - a.likes)
-              .map((blog) => (
-                <Blog
-                  key={blog.id}
-                  blog={blog}
-                  handleDelete={handleDelete}
-                  sendLike={addLike}
-                />
-              ))}
-          </div>
-        </div>
-      ) : (
-        <LoginForm setUser={setUser} createNotification={createNotification} />
-      )}
-    </div>
+      {user && <NavBar />}
+      <Routes>
+        <Route path="/:blogId" element={<Blog />} />
+        <Route path="/users/:userId" element={<User />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/" element={<Blogs />} />
+      </Routes>
+    </>
   );
 };
 

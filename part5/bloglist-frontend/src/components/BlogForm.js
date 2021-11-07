@@ -1,26 +1,25 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
+import { addNotification } from "../reducers/notificationsReducer";
+import { addBlog } from "../reducers/blogsReducer";
+import { useDispatch } from "react-redux";
 
-const BlogForm = ({ createNotification, saveBlog }) => {
+const BlogForm = () => {
   const [title, setTitle] = useState("");
   const [url, setURL] = useState("");
+  const dispatch = useDispatch();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
       const newBlog = { title, url };
-      saveBlog(newBlog);
+      dispatch(addBlog(newBlog));
       setURL("");
-      createNotification({
-        text: title + " blog was added successfully.",
-        type: "success",
-      });
+      dispatch(
+        addNotification("success: " + title + " blog was added successfully.")
+      );
       setTitle("");
     } catch (exception) {
-      createNotification({
-        text: "title or url missing.",
-        type: "warning",
-      });
+      dispatch(addNotification("warning: title or url missing."));
     }
   };
 
@@ -43,11 +42,6 @@ const BlogForm = ({ createNotification, saveBlog }) => {
       <button>save blog</button>
     </form>
   );
-};
-
-BlogForm.propTypes = {
-  createNotification: PropTypes.func.isRequired,
-  saveBlog: PropTypes.func.isRequired,
 };
 
 export default BlogForm;

@@ -1,30 +1,23 @@
 import React, { useState } from "react";
-import blogs from "../services/blogs";
-import login from "../services/login";
+import { useDispatch } from "react-redux";
+import { addNotification } from "../reducers/notificationsReducer";
+import { sendLogin } from "../reducers/sessionReducer";
 
-const LoginForm = ({ setUser, createNotification }) => {
+const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const user = { username, password };
-      const res = await login.createLogin(user);
-      setUser(res);
-      localStorage.setItem("blogUser", JSON.stringify(res));
-      blogs.setToken(res.token);
+      dispatch(sendLogin(user));
       setPassword("");
-      createNotification({
-        text: "logged in as " + username,
-        type: "success",
-      });
+      dispatch(addNotification("success: logged in as " + username));
       setUsername("");
     } catch (exception) {
-      createNotification({
-        text: "wrong username or password",
-        type: "warning",
-      });
+      dispatch(addNotification("warning: wrong username or password"));
     }
   };
 
