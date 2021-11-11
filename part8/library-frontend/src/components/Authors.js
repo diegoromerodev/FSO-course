@@ -3,10 +3,6 @@ import {useQuery, useMutation} from '@apollo/client';
 import {ALL_AUTHORS, UPDATE_AUTHOR} from '../queries';
 
 const Authors = (props) => {
-  if (!props.show) {
-    return null;
-  }
-
   const [name, setName] = useState('');
   const [born, setBorn] = useState('');
   const [authors, setAuthors] = useState([]);
@@ -31,6 +27,10 @@ const Authors = (props) => {
       },
     });
   };
+
+  if (!props.show) {
+    return null;
+  }
 
   return (
     <div>
